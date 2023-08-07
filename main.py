@@ -4,11 +4,12 @@ import cv2
 from mediapipe import solutions
 from mediapipe.framework.formats import landmark_pb2
 import numpy as np
-from cameraman.model import GestureModel
-from cameraman.utils import draw_gesture
+from cameraman.model import GestureModel, FaceModel
+from cameraman.utils import draw_gesture, draw_landmarks_on_image
 
 
-model = GestureModel()
+gesture_model = GestureModel()
+face_model = FaceModel()
 
 
 video = cv2.VideoCapture(0)
@@ -26,10 +27,12 @@ while video.isOpened():
 
     fps = video.get(cv2.CAP_PROP_FPS)
 
-    rr = model.inference(mp_image, timestamp)
+    #    rr = model.inference(mp_image, timestamp)
+    #    annotated_image = draw_gesture(frame, f"{rr}")
+    #    cv2.imshow("show", annotated_image)
 
-    annotated_image = draw_gesture(frame, f"{rr}")
-
+    rr = face_model.inference(mp_image, timestamp)
+    annotated_image = draw_landmarks_on_image(frame, rr)
     cv2.imshow("show", annotated_image)
 
     if cv2.waitKey(5) & 0xFF == ord("q"):
