@@ -24,7 +24,7 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 
 class GestureModel:
     def __init__(self):
-        self.guesture = "No Hand Detected"
+        self.result = None
         self._setup()
 
     def parse_result(
@@ -33,10 +33,7 @@ class GestureModel:
         output_image: mp.Image,
         timestamp_ms: int,
     ):
-        if result.gestures:
-            self.guesture = result.gestures[0][0].category_name
-        else:
-            self.guesture = "No Hand Detected"
+        self.result = result
 
     def _setup(self):
         GestureOptions = GestureRecognizerOptions(
@@ -44,13 +41,14 @@ class GestureModel:
                 model_asset_path="./models/gesture_recognizer.task"
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
+            num_hands=2,
             result_callback=self.parse_result,
         )
         self.model = GestureRecognizer.create_from_options(GestureOptions)
 
     def inference(self, image, timestamp):
         self.model.recognize_async(image, timestamp)
-        return self.guesture
+        return self.result
 
 
 class FaceModel:
