@@ -22,20 +22,23 @@ FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
 
-class GestureModel:
+class DetectionBase:
     def __init__(self):
         self.result = None
-        self._setup()
 
-    def parse_result(
-        self,
-        result: PoseLandmarkerResult,
-        output_image: mp.Image,
-        timestamp_ms: int,
-    ):
+    def parse_result(self, result, output_image, timestamp_ms):
         self.result = result
 
-    def _setup(self):
+    def inference(self, image, timestamp):
+        raise NotImplementedError
+
+
+class GestureModel(DetectionBase):
+    def __init__(self):
+        super(GestureModel, self).__init__()
+        self.setup()
+
+    def setup(self):
         GestureOptions = GestureRecognizerOptions(
             base_options=BaseOptions(
                 model_asset_path="./models/gesture_recognizer.task"
@@ -51,20 +54,12 @@ class GestureModel:
         return self.result
 
 
-class FaceModel:
+class FaceModel(DetectionBase):
     def __init__(self):
-        self.face_landmarks = None
-        self._setup()
+        self.result = None
+        self.setup()
 
-    def parse_result(
-        self, result: FaceLandmarkerResult, output_image: mp.Image, timestamp_ms: int
-    ):
-        if result.face_landmarks:
-            self.face_landmarks = result.face_landmarks
-        else:
-            self.face_landmarks = None
-
-    def _setup(self):
+    def setup(self):
         base_options = BaseOptions(model_asset_path="./models/face_landmarker.task")
         options = FaceLandmarkerOptions(
             base_options=base_options,
@@ -78,4 +73,25 @@ class FaceModel:
 
     def inference(self, image, timestamp):
         self.model.detect_async(image, timestamp)
-        return self.face_landmarks
+        return self.result
+
+
+class FaceDetectorModel(DetectionBase):
+    def __init__(self):
+        self.result = None
+        self.setup()
+
+    def setup(self):
+        base_options = FaceDetectorOptions(
+            base_options=BaseOptions(
+                model_asset_path="./models/blaze_face_short_range.tflite"
+            ),
+            running_mode=VisionRunningMode.LIVE_STREAM,
+            result_callback=self.parse_result,
+        )
+
+        self.model = FaceDetector.create_from_options(base_options)
+
+    def inference(self, image, timestamp):
+        self.model.detect_async(image, timestamp)
+        return self.result
