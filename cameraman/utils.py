@@ -11,8 +11,8 @@ import math
 MARGIN = 10  # pixels
 ROW_SIZE = 10  # pixels
 
-FONT_SIZE = 2
-FONT_THICKNESS = 3
+FONT_SIZE = 1
+FONT_THICKNESS = 2
 HANDEDNESS_TEXT_COLOR = (255, 255, 255)  # vibrant green
 
 
@@ -52,14 +52,13 @@ def _normalized_to_pixel_coordinates(
     return x_px, y_px
 
 
-def draw_landmarks_on_image(rgb_image, detection_result):
-    from_x, from_y = 0, 0
-    to_x, to_y = rgb_image.shape[0], rgb_image.shape[1]
-
+def draw_face_landmarks(rgb_image, detection_result):
     if detection_result is None:
-        return rgb_image, (from_x, to_x), (from_y, to_y)
+        return rgb_image
+
     face_landmarks_list = detection_result.face_landmarks
     annotated_image = np.copy(rgb_image)
+    height, width, _ = annotated_image.shape
     # Loop through the detected faces to visualize.
     for idx in range(len(face_landmarks_list)):
         face_landmarks = face_landmarks_list[idx]
@@ -97,7 +96,6 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             connection_drawing_spec=mp.solutions.drawing_styles.get_default_face_mesh_iris_connections_style(),
         )
 
-        height, width, _ = annotated_image.shape
         x_coordinates = [landmark.x for landmark in face_landmarks]
         y_coordinates = [landmark.y for landmark in face_landmarks]
         from_x = int(min(x_coordinates) * width)
@@ -112,7 +110,7 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             2,
         )
 
-    return annotated_image, (from_x - 100, to_x + 100), (from_y - 100, to_y + 100)
+    return annotated_image
 
 
 def draw_hand(rgb_image, detection_result, gesture_only=True):
@@ -123,6 +121,7 @@ def draw_hand(rgb_image, detection_result, gesture_only=True):
     gestures_list = detection_result.gestures
 
     annotated_image = np.copy(rgb_image)
+    height, width, _ = annotated_image.shape
 
     # Loop through the detected hands to visualize.
     for idx in range(len(hand_landmarks_list)):
@@ -150,7 +149,6 @@ def draw_hand(rgb_image, detection_result, gesture_only=True):
             )
 
         # Get the top left corner of the detected hand's bounding box.
-        height, width, _ = annotated_image.shape
         x_coordinates = [landmark.x for landmark in hand_landmarks]
         y_coordinates = [landmark.y for landmark in hand_landmarks]
         text_x = int(min(x_coordinates) * width)
