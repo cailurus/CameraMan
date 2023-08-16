@@ -214,3 +214,15 @@ def draw_face_box(image, detection_result) -> np.ndarray:
         )
 
     return annotated_image
+
+
+def parse_audio_result(result):
+    if result:
+        classification = result.classifications[0]
+        label_list = [category.category_name for category in classification.categories]
+        print(label_list)
+        result_str = ", ".join(label_list)
+
+        return result_str
+    else:
+        return ""

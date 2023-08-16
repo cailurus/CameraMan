@@ -33,6 +33,46 @@ class DetectionBase:
         raise NotImplementedError
 
 
+AudioClassifier = mp.tasks.audio.AudioClassifier
+AudioClassifierOptions = mp.tasks.audio.AudioClassifierOptions
+AudioClassifierResult = mp.tasks.audio.AudioClassifierResult
+AudioRunningMode = mp.tasks.audio.RunningMode
+
+from mediapipe.tasks.python.components import containers
+
+buffer_size, sample_rate, num_channels = 15600, 16000, 1
+audio_format = containers.AudioDataFormat(num_channels, sample_rate)
+audio_data = containers.AudioData(buffer_size, audio_format)
+
+
+class SoundModel(DetectionBase):
+    def __init__(self):
+        super(SoundModel, self).__init__()
+        self.setup()
+
+    def parser_result(self, result: AudioClassifierResult, timestamp_ms: int):
+        self.result = result
+
+    def setup(self):
+        BaseOptions = mp.tasks.BaseOptions
+        options = AudioClassifierOptions(
+            base_options=BaseOptions(model_asset_path="./models/yamnet.tflite"),
+            running_mode=AudioRunningMode.AUDIO_STREAM,
+            max_results=3,
+            score_threshold=0.3,
+            result_callback=self.parser_result,
+        )
+        self.model = AudioClassifier.create_from_options(options)
+
+    def inference(self, audio_raw, timestamp):
+        # Load the input audio from the AudioRecord instance and run classify.
+        # audio_data.load_from_array(data.astype(np.float32))
+
+        audio_data.load_from_array(audio_raw)
+        self.model.classify_async(audio_data, timestamp)
+        return self.result
+
+
 class GestureModel(DetectionBase):
     def __init__(self):
         super(GestureModel, self).__init__()
