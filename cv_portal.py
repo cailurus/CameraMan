@@ -28,24 +28,27 @@ timestamp = 0
 prev_frame_time = 0
 new_frame_time = 0
 
-from mediapipe.tasks.python.components import containers
-from mediapipe.tasks.python.audio.core import audio_record
+# from mediapipe.tasks.python.components import containers
+# from mediapipe.tasks.python.audio.core import audio_record
 
-buffer_size, sample_rate, num_channels = 15600, 16000, 1
-audio_format = containers.AudioDataFormat(num_channels, sample_rate)
-record = audio_record.AudioRecord(num_channels, sample_rate, buffer_size)
-audio_data = containers.AudioData(buffer_size, audio_format)
+# buffer_size, sample_rate, num_channels = 15600, 44100, 1
+# audio_format = containers.AudioDataFormat(num_channels, sample_rate)
+# record = audio_record.AudioRecord(num_channels, sample_rate, buffer_size)
+# audio_data = containers.AudioData(buffer_size, audio_format)
+#
+# input_length_in_second = (
+#     float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
+# )
+#
+# interval_between_inference = input_length_in_second * (1 - 0.5)
+# pause_time = interval_between_inference * 0.1
+#
+# last_inference_time = time.time()
+#
 
-input_length_in_second = (
-    float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
-)
-interval_between_inference = input_length_in_second * (1 - 0.5)
-pause_time = interval_between_inference * 0.1
-
-last_inference_time = time.time()
+from cameraman.model import BUFFER_SIZE, record
 
 record.start_recording()
-
 
 while True:
     # read and mirror
@@ -73,14 +76,7 @@ while True:
 
         annotated_image = draw_face_landmarks(annotated_image, face_result)
 
-        #         now = time.time()
-        #         diff = now - last_inference_time
-        #         if diff < interval_between_inference:
-        #             time.sleep(pause_time)
-        #             continue
-        #         last_inference_time = now
-
-        audio_raw = record.read(buffer_size)
+        audio_raw = record.read(BUFFER_SIZE)
 
         sound_result = sound_model.inference(audio_raw, timestamp)
         sound_result_str = parse_audio_result(sound_result)

@@ -1,5 +1,7 @@
 import mediapipe as mp
 import cv2
+from mediapipe.tasks.python.components import containers
+from mediapipe.tasks.python.audio.core import audio_record
 
 BaseOptions = mp.tasks.BaseOptions
 
@@ -19,7 +21,23 @@ FaceLandmarker = mp.tasks.vision.FaceLandmarker
 FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
 FaceLandmarkerResult = mp.tasks.vision.FaceLandmarkerResult
 
+AudioClassifier = mp.tasks.audio.AudioClassifier
+AudioClassifierOptions = mp.tasks.audio.AudioClassifierOptions
+AudioClassifierResult = mp.tasks.audio.AudioClassifierResult
+AudioRunningMode = mp.tasks.audio.RunningMode
+
 VisionRunningMode = mp.tasks.vision.RunningMode
+
+BUFFER_SIZE, SAMPLE_RATE, NUM_CHANNELS = 15600, 44100, 1
+audio_data = containers.AudioData(
+    BUFFER_SIZE,
+    containers.AudioDataFormat(NUM_CHANNELS, SAMPLE_RATE),
+)
+record = audio_record.AudioRecord(NUM_CHANNELS, SAMPLE_RATE, BUFFER_SIZE)
+
+# input_length_in_second = (
+#     float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
+# )
 
 
 class DetectionBase:
@@ -31,18 +49,6 @@ class DetectionBase:
 
     def inference(self, image, timestamp):
         raise NotImplementedError
-
-
-AudioClassifier = mp.tasks.audio.AudioClassifier
-AudioClassifierOptions = mp.tasks.audio.AudioClassifierOptions
-AudioClassifierResult = mp.tasks.audio.AudioClassifierResult
-AudioRunningMode = mp.tasks.audio.RunningMode
-
-from mediapipe.tasks.python.components import containers
-
-buffer_size, sample_rate, num_channels = 15600, 16000, 1
-audio_format = containers.AudioDataFormat(num_channels, sample_rate)
-audio_data = containers.AudioData(buffer_size, audio_format)
 
 
 class SoundModel(DetectionBase):
