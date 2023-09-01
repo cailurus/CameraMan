@@ -8,9 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "~3.11.4"
 scipy = "^1.11.1"
-tensorflow = "^2.13.0"
-tensorflow-macos = "^2.13.0"
-tensorflow-metal = "^1.0.1"
 mediapipe = "^0.10.3"
 sounddevice = "^0.4.6"
 imageio = {extras = ["ffmpeg"], version = "^2.31.2"}
@@ -18,6 +15,7 @@ pysimplegui = "^4.60.5"
 opencv-python = "^4.8.0.76"
 dearpygui = "^1.9.1"
 pygame = "^2.5.1"
+compreface-sdk = "^0.6.0"
 
 
 [build-system]

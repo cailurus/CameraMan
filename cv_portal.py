@@ -71,17 +71,15 @@ while True:
         face_result = face_model.inference(mp_image, timestamp)
 
         annotated_image = put_text(frame, fps, (5, 50))
-
         annotated_image = draw_hand(annotated_image, hand_result, gesture_only=True)
-
         annotated_image = draw_face_landmarks(annotated_image, face_result)
 
         audio_raw = record.read(BUFFER_SIZE)
 
-        sound_result = sound_model.inference(audio_raw, timestamp)
-        sound_result_str = parse_audio_result(sound_result)
+        #        sound_result = sound_model.inference(audio_raw, timestamp)
+        #        sound_result_str = parse_audio_result(sound_result)
 
-        annotated_image = put_text(annotated_image, sound_result_str, (5, 150))
+        #        annotated_image = put_text(annotated_image, sound_result_str, (5, 150))
 
         cv2.imshow("Camera Man Demo Main", annotated_image)
 
