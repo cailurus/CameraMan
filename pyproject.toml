@@ -15,7 +15,11 @@ pysimplegui = "^4.60.5"
 opencv-python = "^4.8.0.76"
 dearpygui = "^1.9.1"
 pygame = "^2.5.1"
+requests = "^2.31.0"
 compreface-sdk = "^0.6.0"
+urllib3 = "1.26.15"
+tensorflow-macos = "^2.13.0"
+keras = "^2.13.1"
 
 
 [build-system]

@@ -1,7 +1,13 @@
 import mediapipe as mp
 import cv2
 import time
-from cameraman.model import GestureModel, FaceModel, FaceDetectorModel, SoundModel
+from cameraman.model import (
+    GestureModel,
+    FaceModel,
+    FaceDetectorModel,
+    EmotionModel,
+    SoundModel,
+)
 from cameraman.utils import put_text, draw_face_landmarks, draw_hand, parse_audio_result
 
 WIDTH = 1280
@@ -21,6 +27,7 @@ cap2.set(cv2.CAP_PROP_FPS, FPS)
 gesture_model = GestureModel()
 face_model = FaceModel()
 face_detector_model = FaceDetectorModel()
+emotion_model = EmotionModel()
 
 sound_model = SoundModel()
 
@@ -64,21 +71,21 @@ while True:
         new_frame_time = time.time()
         fps = 1 / (new_frame_time - prev_frame_time)
         prev_frame_time = new_frame_time
-
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-
         hand_result = gesture_model.inference(mp_image, timestamp)
-        face_result = face_model.inference(mp_image, timestamp)
+        face_keypoints_result = face_model.inference(mp_image, timestamp)
+
+        emotion_result = emotion_model.inference(face_keypoints_result)
 
         annotated_image = put_text(frame, fps, (5, 50))
         annotated_image = draw_hand(annotated_image, hand_result, gesture_only=True)
-        annotated_image = draw_face_landmarks(annotated_image, face_result)
+        annotated_image = put_text(frame, emotion_result, (5, 150))
+        # annotated_image = draw_face_landmarks(annotated_image, face_keypoints_result)
 
-        audio_raw = record.read(BUFFER_SIZE)
+        #  audio_raw = record.read(BUFFER_SIZE)
 
         #        sound_result = sound_model.inference(audio_raw, timestamp)
         #        sound_result_str = parse_audio_result(sound_result)
-
         #        annotated_image = put_text(annotated_image, sound_result_str, (5, 150))
 
         cv2.imshow("Camera Man Demo Main", annotated_image)

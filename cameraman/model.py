@@ -1,7 +1,8 @@
 import mediapipe as mp
-import cv2
-from mediapipe.tasks.python.components import containers
+import numpy as np
+import tensorflow as tf
 from mediapipe.tasks.python.audio.core import audio_record
+from mediapipe.tasks.python.components import containers
 
 BaseOptions = mp.tasks.BaseOptions
 
@@ -130,14 +131,50 @@ class FaceDetectorModel(DetectionBase):
     def setup(self):
         base_options = FaceDetectorOptions(
             base_options=BaseOptions(
-                model_asset_path="./models/blaze_face_short_range.tflite"
+                model_asset_path="models/blaze_face_short_range.tflite"
             ),
             running_mode=VisionRunningMode.LIVE_STREAM,
             result_callback=self.parse_result,
         )
-
         self.model = FaceDetector.create_from_options(base_options)
 
     def inference(self, image, timestamp):
         self.model.detect_async(image, timestamp)
         return self.result
+
+
+class EmotionModel:
+    def __init__(self):
+        self.interpreter = tf.lite.Interpreter(
+            model_path="models/face_keypoint_classifier.tflite"
+        )
+        self.interpreter.allocate_tensors()
+
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
+
+        self.mapping = {0: "Laughing", 1: "Neutral", 2: "Angry"}
+
+    def calc_landmarks(self, face_landmarker_result):
+        point_coord = []
+        for point in face_landmarker_result.face_landmarks[0]:
+            point_coord.extend([point.x, point.y])
+        return point_coord
+
+    def inference(self, face_landmarker_result):
+        if (
+            face_landmarker_result is None
+            or len(face_landmarker_result.face_landmarks) == 0
+        ):
+            return None
+        landmark_list = self.calc_landmarks(face_landmarker_result)
+        self.interpreter.set_tensor(
+            self.input_details[0]["index"], np.array([landmark_list], dtype=np.float32)
+        )
+
+        self.interpreter.invoke()
+        tflite_results = self.interpreter.get_tensor(self.output_details[0]["index"])
+
+        inference_res = np.argmax(np.squeeze(tflite_results))
+
+        return self.mapping[inference_res]
