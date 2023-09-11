@@ -8,7 +8,14 @@ from cameraman.model import (
     EmotionModel,
     SoundModel,
 )
-from cameraman.utils import put_text, draw_face_landmarks, draw_hand, parse_audio_result
+from cameraman.utils import (
+    put_text,
+    draw_face_landmarks,
+    draw_hand,
+    parse_audio_result,
+    draw_face_direction,
+    face_detector_visualize,
+)
 
 WIDTH = 1280
 HEIGHT = 720
@@ -72,14 +79,21 @@ while True:
         fps = 1 / (new_frame_time - prev_frame_time)
         prev_frame_time = new_frame_time
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-        hand_result = gesture_model.inference(mp_image, timestamp)
-        face_keypoints_result = face_model.inference(mp_image, timestamp)
 
-        emotion_result = emotion_model.inference(face_keypoints_result)
+        face_detector_res = face_detector_model.inference(mp_image, timestamp)
+        annotated_image = face_detector_visualize(frame, face_detector_res)
 
-        annotated_image = put_text(frame, fps, (5, 50))
-        annotated_image = draw_hand(annotated_image, hand_result, gesture_only=True)
-        annotated_image = put_text(frame, emotion_result, (5, 150))
+        # hand_result = gesture_model.inference(mp_image, timestamp)
+        # face_keypoints_result = face_model.inference(mp_image, timestamp)
+        # emotion_result = emotion_model.inference(face_keypoints_result)
+
+        # annotated_image = put_text(frame, fps, (5, 50))
+        # annotated_image = draw_hand(annotated_image, hand_result, gesture_only=True)
+        # annotated_image = put_text(frame, emotion_result, (5, 150))
+        # annotated_image, direction_score = draw_face_direction(
+        #     annotated_image, face_keypoints_result
+        # )
+
         # annotated_image = draw_face_landmarks(annotated_image, face_keypoints_result)
 
         #  audio_raw = record.read(BUFFER_SIZE)

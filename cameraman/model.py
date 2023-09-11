@@ -1,14 +1,15 @@
 import mediapipe as mp
 import numpy as np
 import tensorflow as tf
+import cv2 as cv
 from mediapipe.tasks.python.audio.core import audio_record
 from mediapipe.tasks.python.components import containers
 
 BaseOptions = mp.tasks.BaseOptions
 
-PoseLandmarker = mp.tasks.vision.PoseLandmarker
-PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
-PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
+# PoseLandmarker = mp.tasks.vision.PoseLandmarker
+# PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
+# PoseLandmarkerResult = mp.tasks.vision.PoseLandmarkerResult
 
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
 GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
@@ -35,6 +36,9 @@ audio_data = containers.AudioData(
     containers.AudioDataFormat(NUM_CHANNELS, SAMPLE_RATE),
 )
 record = audio_record.AudioRecord(NUM_CHANNELS, SAMPLE_RATE, BUFFER_SIZE)
+
+MpFaceDetection = mp.solutions.face_detection
+mp_face_mesh = mp.solutions.face_mesh
 
 # input_length_in_second = (
 #     float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
@@ -102,19 +106,20 @@ class GestureModel(DetectionBase):
 
 
 class FaceModel(DetectionBase):
-    def __init__(self):
+    def __init__(self, num_faces=1):
         self.result = None
-        self.setup()
+        self.setup(num_faces=num_faces)
 
-    def setup(self):
+    def setup(self, num_faces):
         base_options = BaseOptions(model_asset_path="./models/face_landmarker.task")
         options = FaceLandmarkerOptions(
             base_options=base_options,
             output_face_blendshapes=False,
             output_facial_transformation_matrixes=False,
             running_mode=VisionRunningMode.LIVE_STREAM,
-            num_faces=1,
+            num_faces=num_faces,
             result_callback=self.parse_result,
+            min_face_detection_confidence=0.01,
         )
         self.model = FaceLandmarker.create_from_options(options)
 
@@ -123,24 +128,43 @@ class FaceModel(DetectionBase):
         return self.result
 
 
-class FaceDetectorModel(DetectionBase):
+class FaceMesh:
     def __init__(self):
         self.result = None
         self.setup()
 
     def setup(self):
-        base_options = FaceDetectorOptions(
-            base_options=BaseOptions(
-                model_asset_path="models/blaze_face_short_range.tflite"
-            ),
-            running_mode=VisionRunningMode.LIVE_STREAM,
-            result_callback=self.parse_result,
+        self.model = mp_face_mesh.FaceMesh(
+            max_num_faces=1,
+            refine_landmarks=True,
+            min_detection_confidence=0.5,
+            min_tracking_confidence=0.5,
         )
-        self.model = FaceDetector.create_from_options(base_options)
 
-    def inference(self, image, timestamp):
-        self.model.detect_async(image, timestamp)
-        return self.result
+    def inference(self, image):
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        return self.model.process(image)
+
+    def process(self, image):
+        return self.model.process(image)
+
+
+class FaceDetectorModel:
+    def __init__(self):
+        self.result = None
+        self.setup()
+
+    def setup(self):
+        self.model = MpFaceDetection.FaceDetection(
+            model_selection=1, min_detection_confidence=0.5
+        )
+
+    def inference(self, image):
+        image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+        return self.model.process(image)
+
+    def process(self, image):
+        return self.model.process(image)
 
 
 class EmotionModel:

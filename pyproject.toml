@@ -8,7 +8,6 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "~3.11.4"
 scipy = "^1.11.1"
-mediapipe = "^0.10.3"
 sounddevice = "^0.4.6"
 imageio = {extras = ["ffmpeg"], version = "^2.31.2"}
 pysimplegui = "^4.60.5"
@@ -20,7 +19,11 @@ compreface-sdk = "^0.6.0"
 urllib3 = "1.26.15"
 tensorflow-macos = "^2.13.0"
 keras = "^2.13.1"
+mediapipe = "0.10.3"
 
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.25.2"
 
 [build-system]
 requires = ["poetry-core"]
