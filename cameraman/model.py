@@ -181,7 +181,8 @@ class EmotionModel:
 
     def calc_landmarks(self, face_landmarker_result):
         point_coord = []
-        for point in face_landmarker_result.face_landmarks[0]:
+        # for point in face_landmarker_result.face_landmarks[0]:
+        for point in face_landmarker_result.face_landmarks.landmark:
             point_coord.extend([point.x, point.y])
         return point_coord
 

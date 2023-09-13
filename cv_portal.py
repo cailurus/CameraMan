@@ -14,7 +14,7 @@ from cameraman.utils import (
     draw_hand,
     parse_audio_result,
     draw_face_direction,
-    face_detector_visualize,
+    #    face_detector_visualize,
 )
 
 WIDTH = 1280
@@ -42,23 +42,23 @@ timestamp = 0
 prev_frame_time = 0
 new_frame_time = 0
 
-# from mediapipe.tasks.python.components import containers
-# from mediapipe.tasks.python.audio.core import audio_record
+from mediapipe.tasks.python.components import containers
+from mediapipe.tasks.python.audio.core import audio_record
 
-# buffer_size, sample_rate, num_channels = 15600, 44100, 1
-# audio_format = containers.AudioDataFormat(num_channels, sample_rate)
-# record = audio_record.AudioRecord(num_channels, sample_rate, buffer_size)
-# audio_data = containers.AudioData(buffer_size, audio_format)
-#
-# input_length_in_second = (
-#     float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
-# )
-#
-# interval_between_inference = input_length_in_second * (1 - 0.5)
-# pause_time = interval_between_inference * 0.1
-#
-# last_inference_time = time.time()
-#
+buffer_size, sample_rate, num_channels = 15600, 44100, 1
+audio_format = containers.AudioDataFormat(num_channels, sample_rate)
+record = audio_record.AudioRecord(num_channels, sample_rate, buffer_size)
+audio_data = containers.AudioData(buffer_size, audio_format)
+
+input_length_in_second = (
+    float(len(audio_data.buffer)) / audio_data.audio_format.sample_rate
+)
+
+interval_between_inference = input_length_in_second * (1 - 0.5)
+pause_time = interval_between_inference * 0.1
+
+last_inference_time = time.time()
+
 
 from cameraman.model import BUFFER_SIZE, record
 
@@ -80,10 +80,10 @@ while True:
         prev_frame_time = new_frame_time
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
 
-        face_detector_res = face_detector_model.inference(mp_image, timestamp)
-        annotated_image = face_detector_visualize(frame, face_detector_res)
+        # face_detector_res = face_detector_model.inference(mp_image, timestamp)
+        # locations = face_detector_visualize(frame, face_detector_res)
 
-        # hand_result = gesture_model.inference(mp_image, timestamp)
+        hand_result = gesture_model.inference(mp_image, timestamp)
         # face_keypoints_result = face_model.inference(mp_image, timestamp)
         # emotion_result = emotion_model.inference(face_keypoints_result)
 
@@ -96,13 +96,16 @@ while True:
 
         # annotated_image = draw_face_landmarks(annotated_image, face_keypoints_result)
 
-        #  audio_raw = record.read(BUFFER_SIZE)
+        audio_raw = record.read(BUFFER_SIZE)
 
-        #        sound_result = sound_model.inference(audio_raw, timestamp)
-        #        sound_result_str = parse_audio_result(sound_result)
-        #        annotated_image = put_text(annotated_image, sound_result_str, (5, 150))
+        sound_result = sound_model.inference(audio_raw, timestamp)
+        sound_result_str = parse_audio_result(sound_result)
+        print(sound_result_str)
+        # annotated_image = put_text(annotated_image, sound_result_str, (5, 150))
 
-        cv2.imshow("Camera Man Demo Main", annotated_image)
+        # cv2.rectangle(annotated_image, start_point, end_point, TEXT_COLOR, 3)
+
+        # cv2.imshow("Camera Man Demo Main", annotated_image)
 
     # if ret2:
     #     cv2.imshow("Sub", frame2)
